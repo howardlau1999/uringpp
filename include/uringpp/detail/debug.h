@@ -18,7 +18,7 @@ enum class LogLevel {
 
 constexpr static inline LogLevel log_level = LogLevel::DEBUG;
 
-#define UCXPP_LOG_TRACE(msg, ...)                                              \
+#define URINGPP_LOG_TRACE(msg, ...)                                            \
   do {                                                                         \
     if (log_level > LogLevel::TRACE)                                           \
       break;                                                                   \
@@ -26,7 +26,7 @@ constexpr static inline LogLevel log_level = LogLevel::DEBUG;
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
 
-#define UCXPP_LOG_DEBUG(msg, ...)                                              \
+#define URINGPP_LOG_DEBUG(msg, ...)                                            \
   do {                                                                         \
     if (log_level > LogLevel::DEBUG)                                           \
       break;                                                                   \
@@ -34,7 +34,7 @@ constexpr static inline LogLevel log_level = LogLevel::DEBUG;
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
 
-#define UCXPP_LOG_INFO(msg, ...)                                               \
+#define URINGPP_LOG_INFO(msg, ...)                                             \
   do {                                                                         \
     if (log_level > LogLevel::INFO)                                            \
       break;                                                                   \
@@ -42,7 +42,7 @@ constexpr static inline LogLevel log_level = LogLevel::DEBUG;
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
 
-#define UCXPP_LOG_ERROR(msg, ...)                                              \
+#define URINGPP_LOG_ERROR(msg, ...)                                            \
   do {                                                                         \
     printf("[ERROR] [%s:%d] " msg "\n", __FILENAME__,                          \
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \

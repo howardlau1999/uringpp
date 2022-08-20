@@ -38,4 +38,10 @@ static inline void check_errno(int rc, const char *message) {
   }
 }
 
+static inline void check_nerrno(int nerrno, const char *message) {
+  if (nerrno < 0) [[unlikely]] {
+    throw_with("%s: %s (errno=%d)", message, ::strerror(-nerrno), -nerrno);
+  }
+}
+
 } // namespace uringpp

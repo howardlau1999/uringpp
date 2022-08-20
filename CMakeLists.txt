@@ -19,10 +19,8 @@ option(URINGPP_BUILD_EXAMPLES "Build examples" ON)
 include_directories(include)
 
 set(URINGPP_SOURCE_FILES
-  src/socket/channel.cc
-  src/socket/event_loop.cc
-  src/socket/tcp_connection.cc
-  src/socket/tcp_listener.cc
+  src/event_loop.cc
+  src/poller.cc
 )
 
 add_library(uringpp STATIC ${URINGPP_SOURCE_FILES})
