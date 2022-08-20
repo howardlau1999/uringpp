@@ -91,7 +91,7 @@ class event_loop : public noncopyable {
     return sqe;
   }
 
-  sqe_awaitable await_sqe(struct io_uring_sqe *sqe, uint8_t flags) noexcept {
+  sqe_awaitable await_sqe(struct io_uring_sqe *sqe, uint8_t flags) {
     io_uring_sqe_set_flags(sqe, flags);
     return sqe_awaitable(sqe);
   }
@@ -111,14 +111,14 @@ public:
   }
 
   sqe_awaitable readv(int fd, const iovec *iovecs, unsigned nr_vecs,
-                      off_t offset, uint8_t sqe_flags = 0) noexcept {
+                      off_t offset, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_readv(sqe, fd, iovecs, nr_vecs, offset);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable writev(int fd, const iovec *iovecs, unsigned nr_vecs,
-                       off_t offset, uint8_t sqe_flags = 0) noexcept {
+                       off_t offset, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_writev(sqe, fd, iovecs, nr_vecs, offset);
     return await_sqe(sqe, sqe_flags);
@@ -139,7 +139,7 @@ public:
   }
 
   sqe_awaitable read_fixed(int fd, void *buf, unsigned nbytes, off_t offset,
-                           int buf_index, uint8_t sqe_flags = 0) noexcept {
+                           int buf_index, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_read_fixed(sqe, fd, buf, nbytes, offset, buf_index);
     return await_sqe(sqe, sqe_flags);
@@ -147,14 +147,13 @@ public:
 
   sqe_awaitable write_fixed(int fd, const void *buf, unsigned nbytes,
                             off_t offset, int buf_index,
-                            uint8_t sqe_flags = 0) noexcept {
+                            uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_write_fixed(sqe, fd, buf, nbytes, offset, buf_index);
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable fsync(int fd, unsigned fsync_flags,
-                      uint8_t sqe_flags = 0) noexcept {
+  sqe_awaitable fsync(int fd, unsigned fsync_flags, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_fsync(sqe, fd, fsync_flags);
     return await_sqe(sqe, sqe_flags);
@@ -162,7 +161,7 @@ public:
 
   sqe_awaitable sync_file_range(int fd, off64_t offset, off64_t nbytes,
                                 unsigned sync_range_flags,
-                                uint8_t sqe_flags = 0) noexcept {
+                                uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_rw(IORING_OP_SYNC_FILE_RANGE, sqe, fd, nullptr, nbytes,
                        offset);
@@ -171,80 +170,80 @@ public:
   }
 
   sqe_awaitable recvmsg(int sockfd, msghdr *msg, uint32_t flags,
-                        uint8_t sqe_flags = 0) noexcept {
+                        uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_recvmsg(sqe, sockfd, msg, flags);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable sendmsg(int sockfd, const msghdr *msg, uint32_t flags,
-                        uint8_t sqe_flags = 0) noexcept {
+                        uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_sendmsg(sqe, sockfd, msg, flags);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable recv(int sockfd, void *buf, unsigned nbytes, uint32_t flags,
-                     uint8_t sqe_flags = 0) noexcept {
+                     uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_recv(sqe, sockfd, buf, nbytes, flags);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable send(int sockfd, const void *buf, unsigned nbytes,
-                     uint32_t flags, uint8_t sqe_flags = 0) noexcept {
+                     uint32_t flags, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_send(sqe, sockfd, buf, nbytes, flags);
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable poll(int fd, short poll_mask, uint8_t sqe_flags = 0) noexcept {
+  sqe_awaitable poll(int fd, short poll_mask, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_poll_add(sqe, fd, poll_mask);
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable yield(uint8_t sqe_flags = 0) noexcept {
+  sqe_awaitable yield(uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_nop(sqe);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable accept(int fd, sockaddr *addr, socklen_t *addrlen,
-                       int flags = 0, uint8_t sqe_flags = 0) noexcept {
+                       int flags = 0, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_accept(sqe, fd, addr, addrlen, flags);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable connect(int fd, sockaddr *addr, socklen_t addrlen,
-                        uint8_t sqe_flags = 0) noexcept {
+                        uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_connect(sqe, fd, addr, addrlen);
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable timeout(__kernel_timespec *ts, uint8_t sqe_flags = 0) noexcept {
+  sqe_awaitable timeout(__kernel_timespec *ts, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_timeout(sqe, ts, 0, 0);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable openat(int dfd, const char *path, int flags, mode_t mode,
-                       uint8_t sqe_flags = 0) noexcept {
+                       uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_openat(sqe, dfd, path, flags, mode);
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable close(int fd, uint8_t sqe_flags = 0) noexcept {
+  sqe_awaitable close(int fd, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_close(sqe, fd);
     return await_sqe(sqe, sqe_flags);
   }
 
   sqe_awaitable statx(int dfd, const char *path, int flags, unsigned mask,
-                      struct statx *statxbuf, uint8_t sqe_flags = 0) noexcept {
+                      struct statx *statxbuf, uint8_t sqe_flags = 0) {
     auto *sqe = get_sqe();
     ::io_uring_prep_statx(sqe, dfd, path, flags, mask, statxbuf);
     return await_sqe(sqe, sqe_flags);
