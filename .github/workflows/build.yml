@@ -21,6 +21,6 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-20.04' }}
         run: sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
       - name: Configure
-        run: cmake -GNinja -Bbuild .
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -GNinja -Bbuild .
       - name: Build
         run: cmake --build build
