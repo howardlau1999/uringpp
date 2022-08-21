@@ -2,13 +2,15 @@
 
 #include <bitset>
 #include <cassert>
+#include <cstdint>
 #include <liburing.h>
-#include <liburing/io_uring.h>
+#include <memory>
 #include <new>
 #include <unordered_set>
 
 #include "uringpp/awaitable.h"
 #include "uringpp/error.h"
+#include "uringpp/task.h"
 
 #include "uringpp/detail/noncopyable.h"
 
@@ -28,7 +30,8 @@ enum class feature {
   RSRC_TAGS,
 };
 
-class event_loop : public noncopyable {
+class event_loop : public noncopyable,
+                   public std::enable_shared_from_this<event_loop> {
   struct io_uring ring_;
   unsigned int cqe_count_;
   std::unordered_set<feature> supported_features_;
@@ -67,17 +70,15 @@ class event_loop : public noncopyable {
   }
 
 public:
-  event_loop(unsigned int entries = 128, uint32_t flags = 0, int wq_fd = -1) {
-    struct io_uring_params params = {};
-    params.wq_fd = wq_fd > 0 ? wq_fd : 0;
-    params.flags = flags;
-    check_nerrno(::io_uring_queue_init_params(entries, &ring_, &params),
-                 "failed to init io uring");
-    {
-      probe_ring probe(&ring_);
-      supported_ops_ = probe.supported_ops();
+  static std::shared_ptr<event_loop> create(unsigned int entries = 128,
+                                            uint32_t flags = 0, int wq_fd = -1);
+
+  event_loop(unsigned int entries = 128, uint32_t flags = 0, int wq_fd = -1);
+
+  template <class T> void block_on(task<T> t) {
+    while (!t.h_.done()) {
+      poll();
     }
-    init_supported_features(params);
   }
 
   void poll() {
@@ -327,7 +328,7 @@ public:
     return await_sqe(sqe, sqe_flags);
   }
 
-  ~event_loop() { ::io_uring_queue_exit(&ring_); }
+  ~event_loop();
 };
 
 } // namespace uringpp

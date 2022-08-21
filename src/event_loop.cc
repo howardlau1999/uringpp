@@ -1,6 +1,28 @@
 #include "uringpp/event_loop.h"
 
+#include <memory>
+
 namespace uringpp {
+
+std::shared_ptr<event_loop> event_loop::create(unsigned int entries,
+                                               uint32_t flags, int wq_fd) {
+  return std::make_shared<event_loop>(entries, flags, wq_fd);
+}
+
+event_loop::event_loop(unsigned int entries, uint32_t flags, int wq_fd) {
+  struct io_uring_params params = {};
+  params.wq_fd = wq_fd > 0 ? wq_fd : 0;
+  params.flags = flags;
+  check_nerrno(::io_uring_queue_init_params(entries, &ring_, &params),
+               "failed to init io uring");
+  {
+    probe_ring probe(&ring_);
+    supported_ops_ = probe.supported_ops();
+  }
+  init_supported_features(params);
+}
+
+event_loop::~event_loop() { ::io_uring_queue_exit(&ring_); }
 
 event_loop::probe_ring::probe_ring(struct io_uring *ring) {
   probe_ = ::io_uring_get_probe_ring(ring);

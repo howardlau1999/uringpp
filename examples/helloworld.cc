@@ -20,11 +20,9 @@ uringpp::task<void> read_file(uringpp::event_loop &loop) {
 }
 
 int main() {
-  uringpp::event_loop loop;
-  auto t = read_file(loop);
-  while (!t.h_.done()) {
-    loop.poll();
-  }
+  auto loop = uringpp::event_loop::create();
+  auto t = read_file(*loop);
+  loop->block_on(std::move(t));
 
   return 0;
 }
