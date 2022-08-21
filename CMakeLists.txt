@@ -20,7 +20,6 @@ include_directories(include)
 
 set(URINGPP_SOURCE_FILES
   src/event_loop.cc
-  src/poller.cc
 )
 
 add_library(uringpp STATIC ${URINGPP_SOURCE_FILES})

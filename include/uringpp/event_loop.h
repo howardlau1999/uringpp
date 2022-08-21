@@ -37,47 +37,14 @@ class event_loop : public noncopyable {
     struct io_uring_probe *probe_;
 
   public:
-    probe_ring(struct io_uring *ring) {
-      probe_ = ::io_uring_get_probe_ring(ring);
-      check_ptr(probe_, "failed to get probe ring");
-    }
-    std::bitset<IORING_OP_LAST> supported_ops() {
-      std::bitset<IORING_OP_LAST> ops;
-      for (uint8_t i = 0; i < probe_->ops_len; ++i) {
-        if (probe_->ops[i].flags & IO_URING_OP_SUPPORTED) {
-          ops.set(probe_->ops[i].op);
-        }
-      }
-      return ops;
-    }
-    ~probe_ring() { ::io_uring_free_probe(probe_); }
+    probe_ring(struct io_uring *ring);
+    std::bitset<IORING_OP_LAST> supported_ops();
+    ~probe_ring();
   };
 
-  void check_feature(uint32_t features, uint32_t test_bit, enum feature efeat) {
-    if (features & test_bit) {
-      supported_features_.insert(efeat);
-    }
-  }
+  void check_feature(uint32_t features, uint32_t test_bit, enum feature efeat);
 
-  void init_supported_features(struct io_uring_params const &params) {
-    check_feature(params.features, IORING_FEAT_SINGLE_MMAP,
-                  feature::SINGLE_MMAP);
-    check_feature(params.features, IORING_FEAT_NODROP, feature::NODROP);
-    check_feature(params.features, IORING_FEAT_SUBMIT_STABLE,
-                  feature::SUBMIT_STABLE);
-    check_feature(params.features, IORING_FEAT_RW_CUR_POS, feature::RW_CUR_POS);
-    check_feature(params.features, IORING_FEAT_CUR_PERSONALITY,
-                  feature::CUR_PERSONALITY);
-    check_feature(params.features, IORING_FEAT_FAST_POLL, feature::FAST_POLL);
-    check_feature(params.features, IORING_FEAT_POLL_32BITS,
-                  feature::POLL_32BITS);
-    check_feature(params.features, IORING_FEAT_SQPOLL_NONFIXED,
-                  feature::SQPOLL_NONFIXED);
-    check_feature(params.features, IORING_FEAT_EXT_ARG, feature::EXT_ARG);
-    check_feature(params.features, IORING_FEAT_NATIVE_WORKERS,
-                  feature::NATIVE_WORKERS);
-    check_feature(params.features, IORING_FEAT_RSRC_TAGS, feature::RSRC_TAGS);
-  }
+  void init_supported_features(struct io_uring_params const &params);
 
   struct io_uring_sqe *get_sqe() {
     auto sqe = ::io_uring_get_sqe(&ring_);
@@ -111,6 +78,22 @@ public:
       supported_ops_ = probe.supported_ops();
     }
     init_supported_features(params);
+  }
+
+  void poll() {
+    ::io_uring_submit_and_wait(&ring_, 1);
+    io_uring_cqe *cqe;
+    unsigned head;
+
+    io_uring_for_each_cqe(&ring_, head, cqe) {
+      ++cqe_count_;
+      auto awaitable =
+          reinterpret_cast<sqe_awaitable *>(::io_uring_cqe_get_data(cqe));
+      awaitable->rc_ = cqe->res;
+      awaitable->h_.resume();
+    }
+    ::io_uring_cq_advance(&ring_, cqe_count_);
+    cqe_count_ = 0;
   }
 
   sqe_awaitable readv(int fd, const iovec *iovecs, unsigned nr_vecs,
@@ -342,22 +325,6 @@ public:
     auto *sqe = get_sqe();
     ::io_uring_prep_unlinkat(sqe, dfd, path, flags);
     return await_sqe(sqe, sqe_flags);
-  }
-
-  void poll() {
-    ::io_uring_submit_and_wait(&ring_, 1);
-    io_uring_cqe *cqe;
-    unsigned head;
-
-    io_uring_for_each_cqe(&ring_, head, cqe) {
-      ++cqe_count_;
-      auto awaitable =
-          reinterpret_cast<sqe_awaitable *>(::io_uring_cqe_get_data(cqe));
-      awaitable->rc_ = cqe->res;
-      awaitable->h_.resume();
-    }
-    ::io_uring_cq_advance(&ring_, cqe_count_);
-    cqe_count_ = 0;
   }
 
   ~event_loop() { ::io_uring_queue_exit(&ring_); }
