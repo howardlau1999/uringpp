@@ -15,7 +15,7 @@
 namespace uringpp {
 
 /**
- * @brief Represents a file.
+ * @brief An opened file.
  *
  */
 class file : public noncopyable {
