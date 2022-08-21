@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-find_package(Threads REQUIRED)
+find_package(LibUring REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -24,7 +24,7 @@ set(URINGPP_SOURCE_FILES
 )
 
 add_library(uringpp STATIC ${URINGPP_SOURCE_FILES})
-set(URINGPP_LINK_LIBRARIES Threads::Threads)
+set(URINGPP_LINK_LIBRARIES URING::uring)
 list(APPEND
   URINGPP_COMPILE_OPTIONS
   PUBLIC
