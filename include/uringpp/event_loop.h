@@ -342,3 +342,9 @@ public:
 };
 
 } // namespace uringpp
+
+/**
+ * \example helloworld.cc
+ * Quick example of opening sockets and files and doing some I/O on them.
+ * 
+ */
