@@ -2,6 +2,7 @@
 
 #include <coroutine>
 #include <liburing.h>
+#include "uringpp/detail/debug.h"
 
 namespace uringpp {
 

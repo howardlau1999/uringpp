@@ -139,8 +139,8 @@ public:
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable write(int fd, const void *buf, unsigned nbytes, off_t offset = 0,
-                      uint8_t sqe_flags = 0) {
+  sqe_awaitable write(int fd, const void *buf, unsigned nbytes,
+                      off_t offset = 0, uint8_t sqe_flags = 0) {
     assert(supported_ops_.test(IORING_OP_WRITE));
     auto *sqe = get_sqe();
     ::io_uring_prep_write(sqe, fd, buf, nbytes, offset);
@@ -338,6 +338,27 @@ public:
     return await_sqe(sqe, sqe_flags);
   }
 
+  void update_files(unsigned off, int *fds, size_t nfds) {
+    check_nerrno(::io_uring_register_files_update(&ring_, off, fds, nfds),
+                 "failed to update files");
+  }
+
+  void register_files(int const *fds, size_t nfds) {
+    check_nerrno(::io_uring_register_files(&ring_, fds, nfds),
+                 "failed to register files");
+  }
+
+  int unregister_files() { return ::io_uring_unregister_files(&ring_); }
+
+  void register_buffers(struct iovec const *iovecs, unsigned nr_iovecs) {
+    check_nerrno(::io_uring_register_buffers(&ring_, iovecs, nr_iovecs),
+                 "failed to register buffers");
+  }
+
+  int unregister_buffers() noexcept {
+    return ::io_uring_unregister_buffers(&ring_);
+  }
+
   ~event_loop();
 };
 
@@ -346,5 +367,5 @@ public:
 /**
  * \example helloworld.cc
  * Quick example of opening sockets and files and doing some I/O on them.
- * 
+ *
  */

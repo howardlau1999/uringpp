@@ -16,12 +16,32 @@ static inline std::string get_in_addr_string(struct addrinfo *ai) {
   return s;
 }
 
+/**
+ * @brief Listen for incoming connections on a socket.
+ *
+ */
 class listener : public noncopyable {
   std::shared_ptr<event_loop> loop_;
   int fd_;
   listener(std::shared_ptr<event_loop> loop, int fd) : loop_(loop), fd_(fd) {}
 
 public:
+  /**
+   * @brief Get the file descriptor of the listener.
+   *
+   * @return int The file descriptor of the listener.
+   */
+  int fd() const { return fd_; }
+
+  /**
+   * @brief Listen for incoming TCP connections on the given address. It will
+   * create a socket and bind it to the given address.
+   *
+   * @param loop The event loop to use.
+   * @param hostname The hostname to listen on.
+   * @param port The port to listen on.
+   * @return listener The listener object
+   */
   static listener listen(std::shared_ptr<event_loop> loop,
                          std::string const &hostname, std::string const &port) {
     struct addrinfo hints, *servinfo, *p;
@@ -60,9 +80,20 @@ public:
     throw std::runtime_error("try all addresses, failed to listen");
   }
 
+  /**
+   * @brief Move construct a new listener object
+   *
+   * @param other
+   */
   listener(listener &&other) noexcept
       : loop_(std::move(other.loop_)), fd_(std::exchange(other.fd_, -1)) {}
 
+  /**
+   * @brief Accept an incoming connection.
+   *
+   * @return task<std::pair<ip_address, socket>> A pair of the remote address
+   * and the accepted socket
+   */
   task<std::pair<ip_address, socket>> accept() {
     ip_address addr;
     auto fd = co_await loop_->accept(
@@ -71,6 +102,11 @@ public:
     co_return std::make_pair(addr, socket(loop_, fd));
   }
 
+  /**
+   * @brief Close the listener.
+   *
+   * @return task<void>
+   */
   task<void> close() {
     if (fd_ > 0) {
       co_await loop_->close(fd_);
@@ -78,6 +114,11 @@ public:
     }
   }
 
+  /**
+   * @brief Destroy the listener object. If the socket is still open, it will be
+   * closed.
+   *
+   */
   ~listener() {
     if (fd_ > 0) {
       loop_->close_detach(fd_);

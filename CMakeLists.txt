@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-find_package(LibUring REQUIRED)
+find_package(LibUring 2.0 REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -20,7 +20,6 @@ include_directories(include)
 
 set(URINGPP_SOURCE_FILES
   src/event_loop.cc
-  src/socket.cc
 )
 
 add_library(uringpp STATIC ${URINGPP_SOURCE_FILES})
