@@ -23,8 +23,8 @@ uringpp::task<void> echo_server(std::shared_ptr<uringpp::event_loop> loop) {
   };
   while (true) {
     auto [addr, socket] = co_await listener.accept();
-    ::printf("accepted connection fd=%d from %s:%d\n", socket.fd(), addr.ip().c_str(),
-             addr.port());
+    ::printf("accepted connection fd=%d from %s:%d\n", socket.fd(),
+             addr.ip().c_str(), addr.port());
     handler(std::move(socket)).detach();
   }
 }

@@ -10,7 +10,7 @@ namespace uringpp {
 
 /**
  * @brief A pipe.
- * 
+ *
  */
 class pipe {
   std::shared_ptr<event_loop> loop_;

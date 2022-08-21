@@ -287,16 +287,15 @@ public:
 
   /**
    * @brief Splice from a pipe to the socket.
-   * 
-   * @param in The pipe to splice from. 
+   *
+   * @param in The pipe to splice from.
    * @param nbytes The number of bytes to splice.
    * @param flags The flags to use.
-   * @return sqe_awaitable 
+   * @return sqe_awaitable
    */
   sqe_awaitable splice_from(pipe const &in, size_t nbytes, unsigned flags) {
     return loop_->splice(in.readable_fd(), 0, fd_, 0, nbytes, flags);
   }
-
 };
 
 } // namespace uringpp
