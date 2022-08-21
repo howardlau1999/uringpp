@@ -14,7 +14,11 @@ endif ()
 string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_PATH_LENGTH)
 add_definitions("-DSOURCE_PATH_LENGTH=${SOURCE_PATH_LENGTH}")
 
-option(URINGPP_BUILD_EXAMPLES "Build examples" ON)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  option(URINGPP_BUILD_EXAMPLES "Build examples" ON)
+else()
+  option(URINGPP_BUILD_EXAMPLES "Build examples" OFF)
+endif()
 
 include_directories(include)
 
