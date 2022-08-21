@@ -65,7 +65,7 @@ class event_loop : public noncopyable,
   }
 
   sqe_awaitable await_sqe(struct io_uring_sqe *sqe, uint8_t flags) {
-    io_uring_sqe_set_flags(sqe, flags);
+    ::io_uring_sqe_set_flags(sqe, flags);
     return sqe_awaitable(sqe);
   }
 
@@ -90,15 +90,33 @@ public:
       ++cqe_count_;
       auto awaitable =
           reinterpret_cast<sqe_awaitable *>(::io_uring_cqe_get_data(cqe));
-      awaitable->rc_ = cqe->res;
-      awaitable->h_.resume();
+      if (awaitable != nullptr) [[likely]] {
+        awaitable->rc_ = cqe->res;
+        awaitable->h_.resume();
+      }
     }
     ::io_uring_cq_advance(&ring_, cqe_count_);
     cqe_count_ = 0;
   }
 
+  sqe_awaitable openat(int dfd, const char *path, int flags, mode_t mode,
+                       uint8_t sqe_flags = 0) {
+    assert(supported_ops_.test(IORING_OP_OPENAT));
+    auto *sqe = get_sqe();
+    ::io_uring_prep_openat(sqe, dfd, path, flags, mode);
+    return await_sqe(sqe, sqe_flags);
+  }
+
+  sqe_awaitable openat2(int dfd, const char *path, struct open_how *how,
+                        uint8_t sqe_flags = 0) {
+    assert(supported_ops_.test(IORING_OP_OPENAT2));
+    auto *sqe = get_sqe();
+    ::io_uring_prep_openat2(sqe, dfd, path, how);
+    return await_sqe(sqe, sqe_flags);
+  }
+
   sqe_awaitable readv(int fd, const iovec *iovecs, unsigned nr_vecs,
-                      off_t offset, uint8_t sqe_flags = 0) {
+                      off_t offset = 0, uint8_t sqe_flags = 0) {
     assert(supported_ops_.test(IORING_OP_READV));
     auto *sqe = get_sqe();
     ::io_uring_prep_readv(sqe, fd, iovecs, nr_vecs, offset);
@@ -106,14 +124,14 @@ public:
   }
 
   sqe_awaitable writev(int fd, const iovec *iovecs, unsigned nr_vecs,
-                       off_t offset, uint8_t sqe_flags = 0) {
+                       off_t offset = 0, uint8_t sqe_flags = 0) {
     assert(supported_ops_.test(IORING_OP_WRITEV));
     auto *sqe = get_sqe();
     ::io_uring_prep_writev(sqe, fd, iovecs, nr_vecs, offset);
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable read(int fd, void *buf, unsigned nbytes, off_t offset,
+  sqe_awaitable read(int fd, void *buf, unsigned nbytes, off_t offset = 0,
                      uint8_t sqe_flags = 0) {
     assert(supported_ops_.test(IORING_OP_READ));
     auto *sqe = get_sqe();
@@ -121,7 +139,7 @@ public:
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable write(int fd, const void *buf, unsigned nbytes, off_t offset,
+  sqe_awaitable write(int fd, const void *buf, unsigned nbytes, off_t offset = 0,
                       uint8_t sqe_flags = 0) {
     assert(supported_ops_.test(IORING_OP_WRITE));
     auto *sqe = get_sqe();
@@ -233,27 +251,19 @@ public:
     return await_sqe(sqe, sqe_flags);
   }
 
-  sqe_awaitable openat(int dfd, const char *path, int flags, mode_t mode,
-                       uint8_t sqe_flags = 0) {
-    assert(supported_ops_.test(IORING_OP_OPENAT));
-    auto *sqe = get_sqe();
-    ::io_uring_prep_openat(sqe, dfd, path, flags, mode);
-    return await_sqe(sqe, sqe_flags);
-  }
-
-  sqe_awaitable openat2(int dfd, const char *path, struct open_how *how,
-                        uint8_t sqe_flags = 0) {
-    assert(supported_ops_.test(IORING_OP_OPENAT2));
-    auto *sqe = get_sqe();
-    ::io_uring_prep_openat2(sqe, dfd, path, how);
-    return await_sqe(sqe, sqe_flags);
-  }
-
   sqe_awaitable close(int fd, uint8_t sqe_flags = 0) {
     assert(supported_ops_.test(IORING_OP_CLOSE));
     auto *sqe = get_sqe();
     ::io_uring_prep_close(sqe, fd);
     return await_sqe(sqe, sqe_flags);
+  }
+
+  void close_detach(int fd, uint8_t sqe_flags = 0) {
+    assert(supported_ops_.test(IORING_OP_CLOSE));
+    auto *sqe = get_sqe();
+    ::io_uring_prep_close(sqe, fd);
+    ::io_uring_sqe_set_flags(sqe, sqe_flags);
+    ::io_uring_sqe_set_data(sqe, nullptr);
   }
 
   sqe_awaitable statx(int dfd, const char *path, int flags, unsigned mask,
