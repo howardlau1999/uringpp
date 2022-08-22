@@ -82,8 +82,7 @@ public:
     }
   }
 
-  void poll() {
-    ::io_uring_submit_and_wait(&ring_, 1);
+  int process_cqe() {
     io_uring_cqe *cqe;
     unsigned head;
 
@@ -96,8 +95,20 @@ public:
         awaitable->h_.resume();
       }
     }
+    int nr_processed = cqe_count_;
     ::io_uring_cq_advance(&ring_, cqe_count_);
     cqe_count_ = 0;
+    return nr_processed;
+  }
+
+  int poll_no_wait() {
+    ::io_uring_submit(&ring_);
+    return process_cqe();
+  }
+
+  void poll() {
+    ::io_uring_submit_and_wait(&ring_, 1);
+    process_cqe();
   }
 
   sqe_awaitable openat(int dfd, const char *path, int flags, mode_t mode,
