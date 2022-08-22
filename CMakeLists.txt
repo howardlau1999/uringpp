@@ -32,14 +32,14 @@ list(APPEND
   URINGPP_COMPILE_OPTIONS
   PUBLIC
   -flto
-  PUBLIC
+  PRIVATE
   -fno-rtti
 )
 list(APPEND
   URINGPP_LINK_OPTIONS
   PUBLIC
   -flto
-  PUBLIC
+  PRIVATE
   -fno-rtti
 )
 
