@@ -28,7 +28,7 @@ static inline uint16_t get_in_port(struct sockaddr *sa) {
 class ip_address {
 public:
   struct sockaddr_storage ss_;
-  socklen_t len_;
+  socklen_t len_ = sizeof(ss_);
   uint16_t port() {
     return get_in_port(reinterpret_cast<struct sockaddr *>(&ss_));
   }
