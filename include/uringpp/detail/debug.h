@@ -6,7 +6,7 @@
 #define SOURCE_PATH_LENGTH 0
 #endif
 
-#define __FILENAME__ (&__FILE__[SOURCE_PATH_LENGTH])
+#define __URINGPP_FILENAME__ (&__FILE__[SOURCE_PATH_LENGTH])
 
 namespace uringpp {
 
@@ -26,7 +26,7 @@ constexpr static inline uringpp::LogLevel uringpp_log_level =
   do {                                                                         \
     if (uringpp_log_level > uringpp::LogLevel::TRACE)                          \
       break;                                                                   \
-    printf("[TRACE] [%s:%d] " msg "\n", __FILENAME__,                          \
+    printf("[TRACE] [%s:%d] " msg "\n", __URINGPP_FILENAME__,                  \
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
 
@@ -34,7 +34,7 @@ constexpr static inline uringpp::LogLevel uringpp_log_level =
   do {                                                                         \
     if (uringpp_log_level > uringpp::LogLevel::DEBUG)                          \
       break;                                                                   \
-    printf("[DEBUG] [%s:%d] " msg "\n", __FILENAME__,                          \
+    printf("[DEBUG] [%s:%d] " msg "\n", __URINGPP_FILENAME__,                  \
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
 
@@ -42,12 +42,12 @@ constexpr static inline uringpp::LogLevel uringpp_log_level =
   do {                                                                         \
     if (uringpp_log_level > uringpp::LogLevel::INFO)                           \
       break;                                                                   \
-    printf("[INFO ] [%s:%d] " msg "\n", __FILENAME__,                          \
+    printf("[INFO ] [%s:%d] " msg "\n", __URINGPP_FILENAME__,                  \
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
 
 #define URINGPP_LOG_ERROR(msg, ...)                                            \
   do {                                                                         \
-    printf("[ERROR] [%s:%d] " msg "\n", __FILENAME__,                          \
+    printf("[ERROR] [%s:%d] " msg "\n", __URINGPP_FILENAME__,                  \
            __LINE__ __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
