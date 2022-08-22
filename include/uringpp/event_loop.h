@@ -6,6 +6,7 @@
 #include <liburing.h>
 #include <memory>
 #include <new>
+#include <stdexcept>
 #include <unordered_set>
 
 #include "uringpp/awaitable.h"
@@ -59,7 +60,7 @@ class event_loop : public noncopyable,
     ::io_uring_submit(&ring_);
     sqe = ::io_uring_get_sqe(&ring_);
     if (sqe == nullptr) [[unlikely]] {
-      throw std::bad_alloc();
+      throw std::runtime_error("failed to allocate sqe");
     }
     return sqe;
   }
