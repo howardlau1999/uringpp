@@ -9,7 +9,7 @@ std::shared_ptr<event_loop> event_loop::create(unsigned int entries,
   return std::make_shared<event_loop>(entries, flags, wq_fd);
 }
 
-event_loop::event_loop(unsigned int entries, uint32_t flags, int wq_fd) {
+event_loop::event_loop(unsigned int entries, uint32_t flags, int wq_fd) : cqe_count_(0) {
   struct io_uring_params params = {};
   params.wq_fd = wq_fd > 0 ? wq_fd : 0;
   params.flags = flags;
