@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <utility>
 
+#include "uringpp/event_loop.h"
 #include "uringpp/ip_address.h"
 #include "uringpp/socket.h"
 
@@ -100,6 +101,20 @@ public:
         fd_, reinterpret_cast<struct sockaddr *>(&addr.ss_), &addr.len_);
     check_nerrno(fd, "failed to accept connection");
     co_return std::make_pair(addr, socket(loop_, fd));
+  }
+
+   /**
+   * @brief Accept an incoming connection and attach it with the specified loop.
+   *
+   * @return task<std::pair<ip_address, socket>> A pair of the remote address
+   * and the accepted socket
+   */
+  task<std::pair<ip_address, socket>> accept(std::shared_ptr<event_loop> loop) {
+    ip_address addr;
+    auto fd = co_await loop_->accept(
+        fd_, reinterpret_cast<struct sockaddr *>(&addr.ss_), &addr.len_);
+    check_nerrno(fd, "failed to accept connection");
+    co_return std::make_pair(addr, socket(loop, fd));
   }
 
   /**
