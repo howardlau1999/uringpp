@@ -82,6 +82,10 @@ public:
     }
   }
 
+  int fd() const {
+    return ring_.ring_fd;
+  }
+
   int process_cqe() {
     io_uring_cqe *cqe;
     unsigned head;
