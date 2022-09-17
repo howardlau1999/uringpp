@@ -74,7 +74,8 @@ public:
   static std::shared_ptr<event_loop> create(unsigned int entries = 128,
                                             uint32_t flags = 0, int wq_fd = -1);
 
-  event_loop(unsigned int entries = 128, uint32_t flags = 0, int wq_fd = -1);
+  event_loop(unsigned int entries = 128, uint32_t flags = 0, int wq_fd = -1,
+             int sq_thread_cpu = -1, int sq_thread_idle = -1);
 
   template <class T> void block_on(task<T> t) {
     while (!t.h_.done()) {
@@ -82,9 +83,7 @@ public:
     }
   }
 
-  int fd() const {
-    return ring_.ring_fd;
-  }
+  int fd() const { return ring_.ring_fd; }
 
   int process_cqe() {
     io_uring_cqe *cqe;
