@@ -44,7 +44,8 @@ public:
    * @return listener The listener object
    */
   static listener listen(std::shared_ptr<event_loop> loop,
-                         std::string const &hostname, std::string const &port) {
+                         std::string const &hostname, std::string const &port,
+                         int backlog = 128) {
     struct addrinfo hints, *servinfo, *p;
     ::bzero(&hints, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -68,7 +69,7 @@ public:
         }
         auto const &ip = get_in_addr_string(p);
         check_errno(::bind(fd, p->ai_addr, p->ai_addrlen), "failed to bind");
-        check_errno(::listen(fd, 128), "failed to listen");
+        check_errno(::listen(fd, backlog), "failed to listen");
         URINGPP_LOG_DEBUG("binding %s:%s", ip.c_str(), port.c_str());
         ::freeaddrinfo(servinfo);
         return listener(loop, fd);
@@ -103,7 +104,7 @@ public:
     co_return std::make_pair(addr, socket(loop_, fd));
   }
 
-   /**
+  /**
    * @brief Accept an incoming connection and attach it with the specified loop.
    *
    * @return task<std::pair<ip_address, socket>> A pair of the remote address
