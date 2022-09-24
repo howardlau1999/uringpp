@@ -8,11 +8,11 @@
 #include <unistd.h>
 
 #include "uringpp/event_loop.h"
-#include "uringpp/listener.h"
+#include "uringpp/tcp_listener.h"
 #include <uringpp/uringpp.h>
 
 uringpp::task<void> echo_server(std::shared_ptr<uringpp::event_loop> loop) {
-  auto listener = uringpp::listener::listen(loop, "0.0.0.0", "8888");
+  auto listener = uringpp::tcp_listener::listen(loop, "0.0.0.0", "8888");
   auto handler = [loop](uringpp::socket socket) -> uringpp::task<void> {
     char buf[1024];
     int n = 0;

@@ -18,13 +18,13 @@ static inline std::string get_in_addr_string(struct addrinfo *ai) {
 }
 
 /**
- * @brief Listen for incoming connections on a socket.
+ * @brief Listen for incoming TCP connections on a socket.
  *
  */
-class listener : public noncopyable {
+class tcp_listener : public noncopyable {
   std::shared_ptr<event_loop> loop_;
   int fd_;
-  listener(std::shared_ptr<event_loop> loop, int fd) : loop_(loop), fd_(fd) {}
+  tcp_listener(std::shared_ptr<event_loop> loop, int fd) : loop_(loop), fd_(fd) {}
 
 public:
   /**
@@ -43,7 +43,7 @@ public:
    * @param port The port to listen on.
    * @return listener The listener object
    */
-  static listener listen(std::shared_ptr<event_loop> loop,
+  static tcp_listener listen(std::shared_ptr<event_loop> loop,
                          std::string const &hostname, std::string const &port,
                          int backlog = 128) {
     struct addrinfo hints, *servinfo, *p;
@@ -72,7 +72,7 @@ public:
         check_errno(::listen(fd, backlog), "failed to listen");
         URINGPP_LOG_DEBUG("binding %s:%s", ip.c_str(), port.c_str());
         ::freeaddrinfo(servinfo);
-        return listener(loop, fd);
+        return tcp_listener(loop, fd);
       } catch (std::runtime_error &e) {
         URINGPP_LOG_ERROR("%s", e.what());
         continue;
@@ -87,7 +87,7 @@ public:
    *
    * @param other
    */
-  listener(listener &&other) noexcept
+  tcp_listener(tcp_listener &&other) noexcept
       : loop_(std::move(other.loop_)), fd_(std::exchange(other.fd_, -1)) {}
 
   /**
@@ -135,7 +135,7 @@ public:
    * closed.
    *
    */
-  ~listener() {
+  ~tcp_listener() {
     if (fd_ > 0) {
       loop_->close_detach(fd_);
     }
