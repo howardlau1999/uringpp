@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 project(uringpp)
 set(CMAKE_CXX_STANDARD 20)
 
-add_compile_options(-Wall -Wextra -pedantic -Werror)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(LibUring 2.0 REQUIRED)
 
@@ -20,8 +18,6 @@ else()
   option(URINGPP_BUILD_EXAMPLES "Build examples" OFF)
 endif()
 
-include_directories(include)
-
 set(URINGPP_SOURCE_FILES
   src/event_loop.cc
 )
@@ -34,6 +30,10 @@ list(APPEND
   -flto
   PRIVATE
   -fno-rtti
+  -Wall 
+  -Wextra 
+  -pedantic 
+  -Werror
 )
 list(APPEND
   URINGPP_LINK_OPTIONS
@@ -72,6 +72,7 @@ if (URINGPP_LINK_OPTIONS)
   target_link_options(uringpp ${URINGPP_LINK_OPTIONS})
 endif ()
 target_link_libraries(uringpp ${URINGPP_LINK_LIBRARIES})
+target_include_directories(uringpp PUBLIC include)
 
 set(URINGPP_EXAMPLES helloworld)
 if (URINGPP_BUILD_EXAMPLES)
