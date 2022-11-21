@@ -24,7 +24,8 @@ static inline std::string get_in_addr_string(struct addrinfo *ai) {
 class tcp_listener : public noncopyable {
   std::shared_ptr<event_loop> loop_;
   int fd_;
-  tcp_listener(std::shared_ptr<event_loop> loop, int fd) : loop_(loop), fd_(fd) {}
+  tcp_listener(std::shared_ptr<event_loop> loop, int fd)
+      : loop_(loop), fd_(fd) {}
 
 public:
   /**
@@ -44,8 +45,8 @@ public:
    * @return listener The listener object
    */
   static tcp_listener listen(std::shared_ptr<event_loop> loop,
-                         std::string const &hostname, std::string const &port,
-                         int backlog = 128) {
+                             std::string const &hostname,
+                             std::string const &port, int backlog = 128) {
     struct addrinfo hints, *servinfo, *p;
     ::bzero(&hints, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
