@@ -19,9 +19,12 @@ event_loop::event_loop(unsigned int entries, uint32_t flags, int wq_fd,
   params.sq_thread_idle = sq_thread_idle;
   check_nerrno(::io_uring_queue_init_params(entries, &ring_, &params),
                "failed to init io uring");
-  {
+  try {
     probe_ring probe(&ring_);
     supported_ops_ = probe.supported_ops();
+  } catch (std::exception const &e) {
+    ::io_uring_queue_exit(&ring_);
+    throw;
   }
   init_supported_features(params);
 }
